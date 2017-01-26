@@ -22,6 +22,12 @@ def convert_frac(s):
         ans = float(s)
     return ans
 
+def parseFns(s):
+    fns = []
+    if len(s) > 0:
+        for item in s.split(','):
+            fns.append(convert_frac(item.strip()))
+    return fns
 
 again = True
 ask = input('Would you like to change the default parameters? (y/n)').lower()
@@ -32,7 +38,7 @@ if ask == 'y':
                              'You will give a number "n" as 2^n '
                              '(default is 2^10)'))
     D_LIMIT = int(input("what is upper limit for d? (default is 2000)"))
-    HIGHLIGHT_FN = convert_frac(input('What fn would you like to highlight? '
+    HIGHLIGHT_FNS = parseFns(input('What fn would you like to highlight? '
                                       'Type 0 for none (default is 0)'))
     WRITE_TO_FILE = input('Write output to file named for the prime? (y/n) '
                           '(default is n)').lower() == 'y'
@@ -40,7 +46,7 @@ else:
     FN_NUM_LIMIT = 200
     FN_DEN_LIMIT = 10
     D_LIMIT = 2000
-    HIGHLIGHT_FN = 0
+    HIGHLIGHT_FNS = []
     WRITE_TO_FILE = 'n'
 print('This program will now run using these parameters until it is run again.'
       ' Type stop to end the program.')
@@ -87,8 +93,8 @@ while again:
                     str_x = "%d/%d" % (top, d)
                     a = (n + (d + 1) / 4) * x
                     if check_all(a, fn):
-                        if WRITE_TO_FILE == 'n':
-                            if fn == HIGHLIGHT_FN:
+                        if WRITE_TO_FILE:
+                            if fn in HIGHLIGHT_FNS:
                                 print(Fore.RED
                                       + 'n = {0:10} fn = {1:10} x = {2:10}'
                                       .format(str(n), str_fn, str_x))
@@ -98,7 +104,7 @@ while again:
                                       .format(str(n), str_fn, str_x))
                         else:
                             with open('%d.txt' % p, 'a') as f:
-                                if fn == HIGHLIGHT_FN:
+                                if fn in HIGHLIGHT_FNS:
                                     f.write('n = {0:10} fn = {1:10} x = {2:10}*'
                                             .format(str(n), str_fn, str_x))
                                 else:

@@ -1,4 +1,6 @@
 from colorama import init, Fore
+from tkinter.filedialog import askdirectory
+import os
 init()
 
 
@@ -38,7 +40,8 @@ if ask == 'y':
                              'You will give a number "n" as 2^n '
                              '(default is 2^10)'))
     D_LIMIT = int(input("what is upper limit for d? (default is 2000)"))
-    HIGHLIGHT_FNS = parseFns(input('What fn would you like to highlight? '
+    HIGHLIGHT_FNS = parseFns(input('What fns would you like to highlight? '
+                                   'Seperate each fn with a comma.'
                                       'Type 0 for none (default is 0)'))
     WRITE_TO_FILE = input('Write output to file named for the prime? (y/n) '
                           '(default is n)').lower() == 'y'
@@ -47,7 +50,10 @@ else:
     FN_DEN_LIMIT = 10
     D_LIMIT = 2000
     HIGHLIGHT_FNS = []
-    WRITE_TO_FILE = 'n'
+    WRITE_TO_FILE = False
+if WRITE_TO_FILE:
+    FOLDER_PATH = askdirectory(title="Select the folder to save the files")
+    print(FOLDER_PATH)
 print('This program will now run using these parameters until it is run again.'
       ' Type stop to end the program.')
 print('\n')
@@ -65,7 +71,7 @@ while again:
         print("That isn't part of 4n + 1")
         continue
     ns.append(user_n)
-    with open('%d.txt' % p, 'w') as f:
+    with open(os.path.join(FOLDER_PATH, '%d.txt' % p), 'w') as f:
         f.write("Paramenters used to generate this file:\n")
         f.write('fn numerator limit = %d\n' % FN_NUM_LIMIT)
         f.write('fn denomenator limit (2^n) = %d\n' % FN_DEN_LIMIT)
@@ -93,7 +99,7 @@ while again:
                     str_x = "%d/%d" % (top, d)
                     a = (n + (d + 1) / 4) * x
                     if check_all(a, fn):
-                        if WRITE_TO_FILE:
+                        if not WRITE_TO_FILE:
                             if fn in HIGHLIGHT_FNS:
                                 print(Fore.RED
                                       + 'n = {0:10} fn = {1:10} x = {2:10}'
@@ -103,7 +109,7 @@ while again:
                                       + 'n = {0:10} fn = {1:10} x = {2:10}'
                                       .format(str(n), str_fn, str_x))
                         else:
-                            with open('%d.txt' % p, 'a') as f:
+                            with open(os.path.join(FOLDER_PATH, '%d.txt' % p), 'a') as f:
                                 if fn in HIGHLIGHT_FNS:
                                     f.write('n = {0:10} fn = {1:10} x = {2:10}*'
                                             .format(str(n), str_fn, str_x))

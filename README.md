@@ -15,5 +15,5 @@ Parameters that can be modified:
 
 ### To Do List
 - [x] Allow user to specify folder where files will be written
-- [ ] Add separate program to test if number is prime
+- [x] Add separate program to test if number is prime
 - [ ] Allow option to generate output for a certain family of primes

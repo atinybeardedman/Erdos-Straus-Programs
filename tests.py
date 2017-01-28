@@ -36,11 +36,21 @@ def parseFns(s):
     return fns
 
 
+def testFn(fn, n, d_limit=2000):
+    ds = [3 + 4 * i for i in range(d_limit)]
+    for d in ds:
+        top = fn + 4 * n + 1
+        x = top / d
+        str_x = "%d/%d" % (top, d)
+        a = (n + (d + 1) / 4) * x
+        if check_all(a, fn):
+            return str_x
+    return
+
+
 def findFNs(p, no_print=False, d_limit=2000, fn_num_limit=200,
             fn_den_limit=10,
             highlight_fns=[], write_to_file=False):
-    usedFns = []
-    ns = []
     found_fns = {}
     if p.lower() == 'stop':
         return
@@ -50,7 +60,7 @@ def findFNs(p, no_print=False, d_limit=2000, fn_num_limit=200,
     if user_n != int(user_n):
         print("That isn't part of 4n + 1")
         return
-    ns.append(user_n)
+    n = user_n
     if write_to_file:
         FOLDER_PATH = filedialog.askdirectory(title="Select the folder to save the files")
         with open(os.path.join(FOLDER_PATH, '%d.txt' % p), 'w') as f:
@@ -59,49 +69,40 @@ def findFNs(p, no_print=False, d_limit=2000, fn_num_limit=200,
             f.write('fn denomenator limit (2^n) = %d\n' % fn_den_limit)
             f.write('d limit = %d\n' % d_limit)
             f.write('--------------------------------\n')
-    ds = [3 + 4 * i for i in range(d_limit)]
     denoms = [2 ** den for den in range(fn_den_limit)]
     for denom in denoms:
         for numer in range(1, fn_num_limit):
             fn = numer / denom
-            if fn not in usedFns:
-                usedFns.append(fn)
+            test = testFn(fn, n, d_limit)
+            if test:
+                if numer % denom == 0:
+                    str_fn = '%d' % (numer / denom)
+                else:
+                    str_fn = '%d/%d' % (numer, denom)
+                if str_fn not in found_fns:
+                    found_fns[str_fn] = p
+                if no_print:
+                    continue
+                if not write_to_file:
+                    if fn in highlight_fns:
+                        print(Fore.RED
+                            + 'n = {0:10} fn = {1:10} x = {2:10}'
+                            .format(str(n), str_fn, test['x']))
+                    else:
+                        print(Fore.RESET
+                            + 'n = {0:10} fn = {1:10} x = {2:10}'
+                            .format(str(n), str_fn, test['x']))
+                else:
+                    with open(os.path.join(FOLDER_PATH, '%d.txt' % p), 'a') as f:
+                        if fn in highlight_fns:
+                            f.write('n = {0:10} fn = {1:10} x = {2:10}*'
+                                    .format(str(n), str_fn, test['x']))
+                        else:
+                            f.write('n = {0:10} fn = {1:10} x = {2:10}'
+                                    .format(str(n), str_fn, test['x']))
+                        f.write('\n')
             else:
                 continue
-            if numer % denom == 0:
-                str_fn = '%d' % (numer / denom)
-            else:
-                str_fn = '%d/%d' % (numer, denom)
-
-            for d in ds:
-                for n in ns:
-                    top = fn + 4 * n + 1
-                    x = top / d
-                    str_x = "%d/%d" % (top, d)
-                    a = (n + (d + 1) / 4) * x
-                    if check_all(a, fn):
-                        if str_fn not in found_fns:
-                            found_fns[str_fn] = p
-                        if no_print:
-                            continue
-                        if not write_to_file:
-                            if fn in highlight_fns:
-                                print(Fore.RED
-                                    + 'n = {0:10} fn = {1:10} x = {2:10}'
-                                    .format(str(n), str_fn, str_x))
-                            else:
-                                print(Fore.RESET
-                                    + 'n = {0:10} fn = {1:10} x = {2:10}'
-                                    .format(str(n), str_fn, str_x))
-                        else:
-                            with open(os.path.join(FOLDER_PATH, '%d.txt' % p), 'a') as f:
-                                if fn in highlight_fns:
-                                    f.write('n = {0:10} fn = {1:10} x = {2:10}*'
-                                            .format(str(n), str_fn, str_x))
-                                else:
-                                    f.write('n = {0:10} fn = {1:10} x = {2:10}'
-                                            .format(str(n), str_fn, str_x))
-                                f.write('\n')
     return found_fns
 
 
@@ -109,16 +110,16 @@ def singleVersion():
     ask = input('Would you like to change the default parameters? (y/n)').lower()
     if ask == 'y':
         FN_NUM_LIMIT = int(input('What is the upper limit of fn\'s numerator? '
-                                '(default is 200)'))
+                                 '(default is 200)'))
         FN_DEN_LIMIT = int(input("What is the upper limit of fn\'s denomenator? "
-                                'You will give a number "n" as 2^n '
-                                '(default is 2^10)'))
+                                 'You will give a number "n" as 2^n '
+                                 '(default is 2^10)'))
         D_LIMIT = int(input("what is upper limit for d? (default is 2000)"))
         HIGHLIGHT_FNS = parseFns(input('What fns would you like to highlight? '
-                                    'Seperate each fn with a comma.'
-                                    'Type 0 for none (default is 0)'))
+                                       'Seperate each fn with a comma.'
+                                       'Type 0 for none (default is 0)'))
         WRITE_TO_FILE = input('Write output to file named for the prime? (y/n) '
-                            '(default is n)').lower() == 'y'
+                              '(default is n)').lower() == 'y'
     again = True
     while again:
         p = input("What p would you like to check: ")
@@ -144,8 +145,13 @@ def familyVersion():
         min_display = 5
         d = 2000
     fns = {}
+    correction = 0
     for k in range(1, upper_limit + 1):
-        temp = findFNs(str(a * k + b), True, d)
+        p = a * k + b
+        if p < 0:
+            correction += 1
+            continue
+        temp = findFNs(str(p), True, d)
         for fn in temp:
             if fn not in fns:
                 fns[fn] = [temp[fn]]
@@ -155,16 +161,40 @@ def familyVersion():
     print("{0:10} {1:10}".format('fn', 'primes'))
     for key in fns:
         if len(fns[key]) >= min_display:
-            print("{0:10} {1:10}".format(key, str(fns[key])))
+            if len(fns[key]) == upper_limit - correction:
+                print("{0:10} {1:10}*".format(key, str(fns[key])))
+            else:
+                print("{0:10} {1:10}".format(key, str(fns[key])))
+
+
+def checkFamilyFn():
+    print("We will assume the family takes the form ak + b")
+    a = int(input("What is a: "))
+    b = int(input("What is b: "))
+    fn = parseFns(input("What fn would you like to test?"))[0]
+    all_work = True
+    for k in range(10):
+        n = a * k + b
+        if n > 0:
+            if not testFn(fn, n):
+                all_work = False
+                break
+    if all_work:
+        print("That worked")
+    else:
+        print("That didn't work for all tested values in that family")
 
 
 choice = input("Choose from the following options:\n"
                "1 - Enter primes manually and view working fns\n"
-               "2 - Look for fns that work for an entire family\n")
+               "2 - Look for fns that work for an entire family\n"
+               "3 - Try an fn for a family\n")
 if choice == "1":
     singleVersion()
 elif choice == '2':
     familyVersion()
+elif choice == '3':
+    checkFamilyFn()
 
 
 

@@ -1,7 +1,10 @@
 from colorama import init, Fore
-from tkinter.filedialog import askdirectory
+import tkinter as tk
+from tkinter import filedialog
 import os
 init()
+root = tk.Tk()
+root.withdraw()
 
 
 def check_a(a):
@@ -24,12 +27,14 @@ def convert_frac(s):
         ans = float(s)
     return ans
 
+
 def parseFns(s):
     fns = []
     if len(s) > 0:
         for item in s.split(','):
             fns.append(convert_frac(item.strip()))
     return fns
+
 
 again = True
 ask = input('Would you like to change the default parameters? (y/n)').lower()
@@ -52,7 +57,7 @@ else:
     HIGHLIGHT_FNS = []
     WRITE_TO_FILE = False
 if WRITE_TO_FILE:
-    FOLDER_PATH = askdirectory(title="Select the folder to save the files")
+    FOLDER_PATH = filedialog.askdirectory(title="Select the folder to save the files")
     print(FOLDER_PATH)
 print('This program will now run using these parameters until it is run again.'
       ' Type stop to end the program.')

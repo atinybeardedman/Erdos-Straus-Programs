@@ -52,6 +52,7 @@ def findFNs(p, no_print=False, d_limit=2000, fn_num_limit=200,
             fn_den_limit=10,
             highlight_fns=[], write_to_file=False):
     found_fns = {}
+    tested_fns = []
     if p.lower() == 'stop':
         return
     else:
@@ -73,8 +74,12 @@ def findFNs(p, no_print=False, d_limit=2000, fn_num_limit=200,
     for denom in denoms:
         for numer in range(1, fn_num_limit):
             fn = numer / denom
+            if fn in tested_fns:
+                continue
+            else:
+                tested_fns.append(fn)
             test = testFn(fn, n, d_limit)
-            if test:
+            if test is not None:
                 if numer % denom == 0:
                     str_fn = '%d' % (numer / denom)
                 else:
@@ -87,19 +92,19 @@ def findFNs(p, no_print=False, d_limit=2000, fn_num_limit=200,
                     if fn in highlight_fns:
                         print(Fore.RED
                             + 'n = {0:10} fn = {1:10} x = {2:10}'
-                            .format(str(n), str_fn, test['x']))
+                            .format(str(n), str_fn, test))
                     else:
                         print(Fore.RESET
                             + 'n = {0:10} fn = {1:10} x = {2:10}'
-                            .format(str(n), str_fn, test['x']))
+                            .format(str(n), str_fn, test))
                 else:
                     with open(os.path.join(FOLDER_PATH, '%d.txt' % p), 'a') as f:
                         if fn in highlight_fns:
                             f.write('n = {0:10} fn = {1:10} x = {2:10}*'
-                                    .format(str(n), str_fn, test['x']))
+                                    .format(str(n), str_fn, test))
                         else:
                             f.write('n = {0:10} fn = {1:10} x = {2:10}'
-                                    .format(str(n), str_fn, test['x']))
+                                    .format(str(n), str_fn, test))
                         f.write('\n')
             else:
                 continue
@@ -172,15 +177,31 @@ def checkFamilyFn():
     a = int(input("What is a: "))
     b = int(input("What is b: "))
     fn = parseFns(input("What fn would you like to test?"))[0]
+    change = input("Would you like to change the default perameters? (y/n) ").lower() == 'y'
+    if change:
+        limit = int(input("How many of this family should we test? (default is 10) "))
+        save_breaking_case = input("Would you like to know what prime caused it to fail? (y/n) ") == 'y'
+    else:
+        limit = 10
+        save_breaking_case = True
     all_work = True
-    for k in range(10):
-        n = a * k + b
+    working_xs = {}
+    for k in range(1, limit):
+        p = a * k + b
+        n = (a * k + b - 1) / 4
         if n > 0:
-            if not testFn(fn, n):
+            x = testFn(fn, n)
+            if x is None:
                 all_work = False
+                if save_breaking_case:
+                    print('Test failed for {}'.format(p))
                 break
+            else:
+                working_xs[str(p)] = x
     if all_work:
-        print("That worked")
+        print("That worked.")
+        for prime in working_xs:
+            print("{:10} {:10}".format(prime, working_xs[prime]))
     else:
         print("That didn't work for all tested values in that family")
 
